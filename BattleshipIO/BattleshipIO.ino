@@ -770,6 +770,9 @@ if(!poweredUp)
         delay(2500);
         state = HADES_TURN;
       break;
+
+
+      
     case HADES_TURN:
       if(digitalRead(KRONK_OR_HADES))
       {
@@ -806,7 +809,8 @@ if(!poweredUp)
             posChange = true;
           }
 
-          if(digitalRead(SELECT) == 0)
+          select = digitalRead(SELECT);
+          if(select == 0)
           {
               delay(100);
               select = digitalRead(SELECT);
@@ -912,7 +916,7 @@ if(!poweredUp)
               kronk.setPixelColor(i, red);
             }
           }
-          hades.show();
+          kronk.show();
           
         }
       }
@@ -925,6 +929,165 @@ if(!poweredUp)
         state = END;
       }
       break;
+
+       case KRONK_TURN:
+      if(digitalRead(KRONK_OR_HADES))
+      {
+        int select =1;
+        byte x, y = 0;
+         while(select != 0)
+        {
+          bool posChange = false;
+          bool valid = true;
+          int xCmd = analogRead(X_MOVE);
+          int yCmd = analogRead(Y_MOVE);
+          int lightList[5] = {101, 101, 101, 101, 101};
+
+          // Move cursor
+          if(xCmd < 50 && x > 0)
+          {
+            x--;
+            posChange = true;
+          }
+          else if (xCmd > 205 && x < 9)
+          {
+            x++;
+            posChange = true;
+          }
+
+          if(yCmd < 50 && y > 0)
+          {
+            y--;
+            posChange = true;
+          }
+          else if (yCmd > 205 && y < 9)
+          {
+            y++;
+            posChange = true;
+          }
+
+          select = digitalRead(SELECT);
+          if(select == 0)
+          {
+              delay(100);
+              select = digitalRead(SELECT);
+              if(select ==0)
+              {
+                byte pos = 10*x+y;
+                switch(hadesField[pos])
+                {
+                  case SEA:
+                    hadesField[pos] = MISS;
+                    break;
+                  case SMALL_SHIP:
+                     hadesShipHealth[3] -= 1;
+                     hadesField[pos] = HIT;
+                     break;
+                   case MEDIUM_B_SHIP:
+                     hadesShipHealth[2] -= 1;
+                     hadesField[pos] = HIT;
+                     break;
+                   case MEDIUM_A_SHIP:
+                     hadesShipHealth[1] -= 1;
+                     hadesField[pos] = HIT;
+                     break;
+                   case LARGE_SHIP:
+                     hadesShipHealth[0] -= 1;
+                     hadesField[pos] = HIT;
+                     break;
+                }
+              }
+          }
+
+              
+          // Light Square
+          for(byte i = 0; i < 100; i++)
+          {
+              if (hadesField[i] == HIT)
+              {
+                hades.setPixelColor(i, red);
+              }
+              else if (hadesField[i] == MISS)
+              {
+                hades.setPixelColor(i, white);
+              }
+              else
+              {
+                hades.setPixelColor(i, blue);
+              }
+          }
+
+          for(byte i = smallShip; i < smallShip + 3; i++)
+          {
+            byte health = hadesShipHealth[3];
+            if(health > 0)
+            {
+              hades.setPixelColor(i, white);
+              health--;
+            }
+            else
+            {
+              hades.setPixelColor(i, red);
+            }
+          }
+
+
+          for(byte i = mediumShip1; i < mediumShip1 + 4; i++)
+          {
+            byte health = hadesShipHealth[2];
+            if(health > 0)
+            {
+              hades.setPixelColor(i, white);
+              health--;
+            }
+            else
+            {
+              hades.setPixelColor(i, red);
+            }
+          }
+
+          for(byte i = mediumShip2; i < mediumShip2 + 4; i++)
+          {
+            byte health = hadesShipHealth[1];
+            if(health > 0)
+            {
+              hades.setPixelColor(i, white);
+              health--;
+            }
+            else
+            {
+              hades.setPixelColor(i, red);
+            }
+          }
+
+          for(byte i = largeShip; i < largeShip + 5; i++)
+          {
+            byte health = hadesShipHealth[0];
+            if(health > 0)
+            {
+              hades.setPixelColor(i, white);
+              health--;
+            }
+            else
+            {
+              hades.setPixelColor(i, red);
+            }
+          }
+          hades.show();
+          
+        }
+      }
+      else
+      {
+        delay(200);
+      }
+      if(hadesShipHealth[0] == 0 && hadesShipHealth[1] == 0 && hadesShipHealth[2] == 0 && hadesShipHealth[3] == 0)
+      {
+        state = END;
+      }
+      break;
+
+      
     case END:
       if(kronkShipHealth[0] == 0 && kronkShipHealth[1] == 0 && kronkShipHealth[2] == 0 && kronkShipHealth[3] == 0)
       {
